@@ -1,0 +1,13 @@
+# Políticas Internas da TechCorp
+
+## 1. Política de Férias
+Todos os funcionários têm direito a 30 dias de férias remuneradas após 12 meses de serviço. O agendamento deve ser feito com no mínimo 60 dias de antecedência, e a aprovação final cabe ao gestor direto. Não é permitido acumular mais de dois períodos de férias.
+
+## 2. Política de Home Office
+O regime de trabalho é híbrido, com presença obrigatória no escritório às terças e quintas-feiras. Nos demais dias, o trabalho remoto é opcional. O auxílio home office é de R$ 150,00 mensais, depositado junto ao salário.
+
+## 3. Política de Reembolso de Despesas
+Despesas de viagem e alimentação a trabalho devem ser submetidas via sistema interno (Expensefy) em até 5 dias úteis após a despesa. O limite diário para alimentação é de R$ 80,00.
+
+## 4. Missão da Empresa
+Nossa missão é simplificar a tecnologia para pequenos negócios, utilizando soluções de Inteligência Artificial de ponta.
