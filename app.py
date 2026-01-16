@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_community.vectorstores import Chroma
@@ -12,12 +12,19 @@ st.title("🧠 Cérebro Digital de IA: Seu Assistente de Conteúdo Imediato")
 st.subheader("Demonstração de Prova de Conceito (POC) para Clientes")
 
 # --- Variáveis de Configuração ---
-# O cliente precisará da chave da OpenAI.
-# Para a demo, usaremos uma variável de ambiente.
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+# Tenta pegar da variável de ambiente ou dos secrets do Streamlit Cloud
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
 
 if not OPENAI_API_KEY:
-    st.error("ERRO: A chave da API da OpenAI não está configurada. Por favor, defina a variável de ambiente 'OPENAI_API_KEY'.")
+    st.error("🔑 ERRO: A chave da API da OpenAI não está configurada.")
+    st.info("""
+    **Para configurar no Streamlit Cloud:**
+    1. Vá em Settings → Secrets
+    2. Adicione: `OPENAI_API_KEY = "sua-chave-aqui"`
+    
+    **Para rodar localmente:**
+    Execute: `export OPENAI_API_KEY='sua-chave-aqui'`
+    """)
     st.stop()
 
 # --- Funções do RAG ---
@@ -31,8 +38,8 @@ def setup_rag_system(file_path):
     3. Cria embeddings e armazena no Vector Store (Chroma).
     """
     try:
-        # 1. Carregar o documento (usando o arquivo de exemplo)
-        loader = TextLoader(file_path)
+        # 1. Carregar o documento
+        loader = TextLoader(file_path, encoding='utf-8')
         documents = loader.load()
 
         # 2. Dividir o texto
@@ -59,11 +66,17 @@ def setup_rag_system(file_path):
         return None
 
 # --- Inicialização ---
-FILE_PATH = "/home/ubuntu/politicas_empresa.txt"
+FILE_PATH = "politicas_empresa.txt"
+
+if not os.path.exists(FILE_PATH):
+    st.error(f"❌ Arquivo '{FILE_PATH}' não encontrado!")
+    st.info("Certifique-se de que o arquivo está no repositório Git.")
+    st.stop()
+
 qa_chain = setup_rag_system(FILE_PATH)
 
 if qa_chain:
-    st.success(f"Sistema treinado com sucesso! (Base: {os.path.basename(FILE_PATH)})")
+    st.success(f"✅ Sistema treinado com sucesso! (Base: {os.path.basename(FILE_PATH)})")
     st.markdown("---")
 
     # --- Interface de Chat ---
@@ -85,7 +98,7 @@ if qa_chain:
             st.markdown(prompt)
 
         # Processa a pergunta
-        with st.spinner("A IA está consultando a base de conhecimento..."):
+        with st.spinner("🤔 A IA está consultando a base de conhecimento..."):
             try:
                 result = qa_chain.invoke({"query": prompt})
                 response = result["result"]
@@ -95,26 +108,35 @@ if qa_chain:
                 with st.chat_message("assistant"):
                     st.markdown(response)
                     
-                    # Mostra a fonte para o cliente (Prova de que a IA "leu" o documento)
-                    st.caption("---")
-                    st.caption("Fonte Consultada (Prova de Conceito):")
-                    for doc in result["source_documents"]:
-                        st.code(doc.page_content[:150] + "...", language="text")
+                    # Mostra a fonte para o cliente
+                    with st.expander("📄 Ver Fontes Consultadas"):
+                        for i, doc in enumerate(result["source_documents"], 1):
+                            st.code(f"Fonte {i}:\n{doc.page_content[:200]}...", language="text")
 
             except Exception as e:
-                st.error(f"Ocorreu um erro durante a consulta: {e}")
+                st.error(f"❌ Ocorreu um erro durante a consulta: {e}")
                 st.session_state.messages.append({"role": "assistant", "content": "Desculpe, ocorreu um erro ao processar sua solicitação."})
 
 # --- Instruções para o Cliente ---
-st.sidebar.title("Instruções para a Demonstração")
+st.sidebar.title("📋 Instruções para a Demonstração")
 st.sidebar.markdown("""
 Este protótipo demonstra como sua IA pode responder **apenas** com base nos seus documentos internos.
 
-**Perguntas de Teste (Baseadas no arquivo):**
+**Perguntas de Teste:**
 1. Qual é a política de home office da TechCorp?
 2. Qual o prazo para submeter despesas de viagem?
 3. Qual é a missão da empresa?
+4. Quantos dias de férias tenho direito?
 
-**O que o cliente vê:** Respostas precisas e a fonte da informação.
-**O que o cliente compra:** A certeza de que a IA não "alucina" e usa apenas o conhecimento da empresa.
+**O que o cliente vê:** 
+- ✅ Respostas precisas
+- ✅ Fonte da informação
+- ✅ Baseado 100% nos documentos
+
+**O que o cliente compra:** 
+A certeza de que a IA não "alucina" e usa apenas o conhecimento da empresa.
 """)
+
+st.sidebar.markdown("---")
+st.sidebar.info(f"🔑 API Key: {'✅ Configurada' if OPENAI_API_KEY else '❌ Ausente'}")
+st.sidebar.info(f"📁 Arquivo: {FILE_PATH}")
